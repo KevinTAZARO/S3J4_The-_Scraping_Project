@@ -1,54 +1,52 @@
 require 'nokogiri'
 require 'open-uri'
 
-def source(url_mairie)
-    nom_commune = Nokogiri::HTML(URI.open(url_mairie))
+def source(array_url)
+    all_name = []
+
+    array_url.each do |url|
+    nom_commune = Nokogiri::HTML(URI.open("#{url}"))
     #On recherche le noms des Mairies
     nom = nom_commune.xpath('//div/main/section[1]/div/div/div/h1').text
-return nom[0..-9] #à quoi ça sert bruh ?
+    good_name = nom[0..-9] #selectionne le nom des communes et enlève les derniers caractères de la ligne (code postal)
+    all_name << good_name   
+    end
+    return all_name
 end
 
 def source_bis
+    url_mairie = []
     specific_url = Nokogiri::HTML(URI.open("http://annuaire-des-mairies.com/val-d-oise.html")).xpath('//a[@class="lientxt"]/@href')
     #On recherche des urls des Mairies dans le tableau
     url_mairie = specific_url.map {|x| "https://www.annuaire-des-mairies.com" + x.text[1..-1]}
-    return url_mairie
+return url_mairie
 end
 
 def get_townhall_email(townhall_url)
-    commune = Nokogiri::HTML(URI.open(townhall_url)) #recherche des mails des Mairies
-         get_mail = commune.xpath('//div/main/section[2]/div/table/tbody/tr[4]/td[2]').text
-         return get_mail
-   end
+    all_mails = []
 
-   Hash.class_eval do
-    def split_into(divisions)
-      count = 0
-      inject([]) do |final, key_value|
-        final[count%divisions] ||= {}
-        final[count%divisions].merge!({key_value[0] => key_value[1]})
-        count += 1
-        final
-      end
-    end
- end
-
-def perform
-    mail = []
-    name = []
-
-    source_bis.each do |x|
-        mail << get_townhall_email(x)
-        name << source(x)
-
+    townhall_url.each do |url| #pour chque case de mon tableau, il analyse le tableau et |url| change à tour
+        commune = Nokogiri::HTML(URI.open("#{url}")) #recherche des mails des Mairies
+        get_mail = commune.xpath('//div/main/section[2]/div/table/tbody/tr[4]/td[2]').text
+        all_mails << get_mail #les données sont envoyées dans le tableau all_mails
     end
 
-    hash_all = Hash[name.zip(mail)]
+    return all_mails
 
-    new_array = hash_all.split_into(name.size)
-
-    puts new_array
-    
 end
 
-perform
+
+def perform
+    final = []
+    url = source_bis
+    name = source(url)
+    email = get_townhall_email(url)
+
+    name.length.times do |i|
+        h = {name [i] => email [i]}
+        final.push(h)
+    end
+
+    return final
+
+end

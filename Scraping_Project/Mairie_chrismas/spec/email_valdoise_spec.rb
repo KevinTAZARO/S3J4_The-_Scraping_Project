@@ -9,15 +9,18 @@
 require_relative '../lib/email_valdoise.rb'
 
 describe "source nom de la mairie" do
-    it "donne le nom de la ville" do
-      expect(source("http://annuaire-des-mairies.com/95/aincourt.html")).to eq("AINCOURT")
-      expect(source("http://annuaire-des-mairies.com/95/pontoise.html")).to eq("PONTOISE")
-    end
- end
+    
+  it "return hash" do
+    expect(perform).to be_an(Array)
+  end
 
- describe "source email de la mairie" do
+  it "donne le nom de la ville" do
+      expect(perform).to include{"AINCOURT"}
+      expect(perform).to include{"PONTOISE"}
+    end
+
     it "donne l'email de la ville" do
-      expect(get_townhall_email("http://annuaire-des-mairies.com/95/aincourt.html")).to eq("mairie.aincourt@wanadoo.fr")
-      expect(get_townhall_email("http://annuaire-des-mairies.com/95/pontoise.html")).to eq("mairie@ville-pontoise.fr")
+      expect(perform).to include{"mairie.aincourt@wanadoo.fr"}
+      expect(perform).to include{"mairie@ville-pontoise.fr"}
     end
  end
